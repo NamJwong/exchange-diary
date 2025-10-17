@@ -159,6 +159,9 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
               maxLength={20}
               disabled={isSubmitting}
             />
+            {activeTab === 'register' && (
+              <p className="text-xs text-gray-500 mt-1">유저 이름은 가입 후 변경할 수 없습니다</p>
+            )}
           </div>
 
           {/* 비밀번호 */}
