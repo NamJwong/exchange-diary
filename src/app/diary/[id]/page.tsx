@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getUserName } from '@/lib/storage';
 import { getDiary, recordDiaryRead } from '@/lib/api';
@@ -19,6 +19,40 @@ export default function DiaryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string>('');
 
+  const loadDiary = useCallback(
+    async (readerName: string) => {
+      try {
+        setLoading(true);
+
+        // 일기 불러오기
+        const data = await getDiary(diaryId);
+
+        if (!data) {
+          alert('일기를 찾을 수 없습니다.');
+          router.push('/');
+          return;
+        }
+
+        setDiary(data);
+
+        // 열람 기록 저장 (자신의 일기가 아닐 때만)
+        if (data.author_name !== readerName) {
+          await recordDiaryRead({
+            diary_id: diaryId,
+            reader_name: readerName,
+          });
+        }
+      } catch (error) {
+        console.error('일기 불러오기 실패:', error);
+        alert('일기를 불러오는데 실패했습니다.');
+        router.push('/');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [diaryId, router]
+  );
+
   useEffect(() => {
     // 사용자 이름 확인
     const name = getUserName();
@@ -30,38 +64,7 @@ export default function DiaryDetailPage() {
 
     // 일기 불러오기 및 열람 기록
     loadDiary(name);
-  }, [diaryId, router]);
-
-  const loadDiary = async (readerName: string) => {
-    try {
-      setLoading(true);
-
-      // 일기 불러오기
-      const data = await getDiary(diaryId);
-
-      if (!data) {
-        alert('일기를 찾을 수 없습니다.');
-        router.push('/');
-        return;
-      }
-
-      setDiary(data);
-
-      // 열람 기록 저장 (자신의 일기가 아닐 때만)
-      if (data.author_name !== readerName) {
-        await recordDiaryRead({
-          diary_id: diaryId,
-          reader_name: readerName,
-        });
-      }
-    } catch (error) {
-      console.error('일기 불러오기 실패:', error);
-      alert('일기를 불러오는데 실패했습니다.');
-      router.push('/');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [loadDiary, router]);
 
   const handleBack = () => {
     router.push('/');

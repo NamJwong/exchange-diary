@@ -91,9 +91,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         // 성공 콜백
         onLoginSuccess(trimmedUsername);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('인증 실패:', err);
-      setError(err.message || '요청에 실패했습니다. 다시 시도해주세요.');
+      const errorMessage = err instanceof Error ? err.message : '요청에 실패했습니다. 다시 시도해주세요.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
