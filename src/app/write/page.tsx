@@ -37,11 +37,6 @@ export default function WritePage() {
       return;
     }
 
-    if (trimmedContent.length < 10) {
-      setError('일기는 10글자 이상 작성해주세요');
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       setError('');
@@ -113,10 +108,11 @@ export default function WritePage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
               placeholder="오늘 하루는 어땠나요? 자유롭게 작성해보세요..."
               rows={12}
+              maxLength={2000}
               disabled={isSubmitting}
             />
             <div className="flex justify-between items-center mt-2">
-              <span className="text-sm text-gray-500">{content.length}자</span>
+              <span className="text-sm text-gray-500">{content.length} / 2,000자</span>
               {error && <p className="text-sm text-red-600">{error}</p>}
             </div>
           </div>

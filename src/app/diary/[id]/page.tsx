@@ -47,12 +47,13 @@ export default function DiaryDetailPage() {
 
       setDiary(data);
 
-      // 열람 기록 저장
-      // 자신의 일기가 아닐 때만 기록 (선택사항: 원하면 자신의 일기도 기록 가능)
-      await recordDiaryRead({
-        diary_id: diaryId,
-        reader_name: readerName,
-      });
+      // 열람 기록 저장 (자신의 일기가 아닐 때만)
+      if (data.author_name !== readerName) {
+        await recordDiaryRead({
+          diary_id: diaryId,
+          reader_name: readerName,
+        });
+      }
     } catch (error) {
       console.error('일기 불러오기 실패:', error);
       alert('일기를 불러오는데 실패했습니다.');
@@ -113,9 +114,11 @@ export default function DiaryDetailPage() {
           </div>
 
           {/* 열람 정보 */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-500">{userName}님이 이 일기를 읽었습니다 📖</p>
-          </div>
+          {diary.author_name !== userName && (
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-500">{userName}님이 이 일기를 읽었습니다 📖</p>
+            </div>
+          )}
         </div>
 
         {/* 하단 버튼 */}

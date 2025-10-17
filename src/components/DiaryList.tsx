@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getDiaries } from '@/lib/api';
+import { getDiaries, checkAndMoveUnreadDiariesToTrash, getTrashedDiaries } from '@/lib/api';
 import type { Diary } from '@/types/database';
 import { clearUserName, getUserName } from '@/lib/storage';
 
@@ -13,6 +13,7 @@ import { clearUserName, getUserName } from '@/lib/storage';
 export default function DiaryList() {
   const router = useRouter();
   const [diaries, setDiaries] = useState<Diary[]>([]);
+  const [trashedCount, setTrashedCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string>('');
 
@@ -30,8 +31,23 @@ export default function DiaryList() {
   const loadDiaries = async () => {
     try {
       setLoading(true);
-      const data = await getDiaries();
-      setDiaries(data);
+
+      // 1. 먼저 3일 미읽음 일기를 자동으로 휴지통으로 이동
+      await checkAndMoveUnreadDiariesToTrash();
+
+      // 2. 일기 목록 불러오기 (약간의 지연 후)
+      // Supabase 업데이트 반영을 위한 짧은 대기
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const allDiaries = await getDiaries();
+
+      // 3. 휴지통이 아닌 일기만 필터링
+      const activeDiaries = allDiaries.filter((diary) => !diary.is_trashed);
+      setDiaries(activeDiaries);
+
+      // 4. 휴지통 개수 확인
+      const trashed = await getTrashedDiaries();
+      setTrashedCount(trashed.length);
     } catch (error) {
       console.error('일기 목록 불러오기 실패:', error);
       alert('일기 목록을 불러오는데 실패했습니다. 다시 시도해주세요.');
@@ -49,10 +65,14 @@ export default function DiaryList() {
   };
 
   const handleLogout = () => {
-    if (confirm('이름을 변경하시겠습니까?')) {
+    if (confirm('로그아웃 하시겠습니까?')) {
       clearUserName();
       window.location.reload();
     }
+  };
+
+  const handleTrashClick = () => {
+    router.push('/trash');
   };
 
   const formatDate = (dateString: string) => {
@@ -75,9 +95,20 @@ export default function DiaryList() {
             <h1 className="text-2xl font-bold text-gray-800">교환일기</h1>
             <p className="text-sm text-gray-600">{userName}님, 환영합니다!</p>
           </div>
-          <button onClick={handleLogout} className="text-sm text-gray-600 hover:text-gray-800">
-            이름 변경
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleTrashClick}
+              className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+            >
+              🗑️ 휴지통
+              {trashedCount > 0 && (
+                <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 ml-1">{trashedCount}</span>
+              )}
+            </button>
+            <button onClick={handleLogout} className="text-sm text-gray-600 hover:text-gray-800">
+              로그아웃
+            </button>
+          </div>
         </div>
       </header>
 

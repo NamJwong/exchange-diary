@@ -25,11 +25,6 @@ export default function NameInputForm({ onNameSet }: NameInputFormProps) {
       return;
     }
 
-    if (trimmedName.length < 2) {
-      setError('이름은 2글자 이상 입력해주세요');
-      return;
-    }
-
     // 로컬 스토리지에 저장
     saveUserName(trimmedName);
 

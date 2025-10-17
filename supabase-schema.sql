@@ -33,13 +33,16 @@ CREATE INDEX IF NOT EXISTS idx_diary_reads_diary_id ON diary_reads(diary_id);
 ALTER TABLE diaries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE diary_reads ENABLE ROW LEVEL SECURITY;
 
--- 5. 모든 사용자에게 읽기/쓰기 권한 부여
+-- 5. 모든 사용자에게 읽기/쓰기/수정 권한 부여
 -- (인증 없는 MVP이므로 누구나 접근 가능하도록 설정)
 CREATE POLICY "누구나 일기를 읽을 수 있습니다" ON diaries
   FOR SELECT USING (true);
 
 CREATE POLICY "누구나 일기를 작성할 수 있습니다" ON diaries
   FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "누구나 일기를 수정할 수 있습니다" ON diaries
+  FOR UPDATE USING (true) WITH CHECK (true);
 
 CREATE POLICY "누구나 열람 기록을 읽을 수 있습니다" ON diary_reads
   FOR SELECT USING (true);
