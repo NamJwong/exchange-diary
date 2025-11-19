@@ -23,9 +23,6 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 초대코드 (환경 변수에서 가져오기)
-  const VALID_INVITE_CODE = process.env.NEXT_PUBLIC_INVITE_CODE || '';
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
@@ -66,8 +63,23 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         return;
       }
 
-      if (inviteCode.trim() !== VALID_INVITE_CODE) {
-        setError('올바르지 않은 초대코드입니다');
+      // 서버에서 초대코드 검증
+      try {
+        const verifyResponse = await fetch('/api/verify-invite-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inviteCode: inviteCode.trim() }),
+        });
+
+        const verifyData = await verifyResponse.json();
+
+        if (!verifyResponse.ok || !verifyData.valid) {
+          setError('올바르지 않은 초대코드입니다');
+          return;
+        }
+      } catch (err) {
+        console.error('초대코드 검증 실패:', err);
+        setError('초대코드 검증 중 오류가 발생했습니다');
         return;
       }
     }
