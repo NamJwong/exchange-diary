@@ -75,6 +75,25 @@ export async function getDiaryReadCount(diaryId: string): Promise<number> {
 }
 
 /**
+ * 특정 일기를 읽은 사람들의 이름 목록 가져오기
+ */
+export async function getDiaryReaders(diaryId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('diary_reads')
+    .select('reader_name')
+    .eq('diary_id', diaryId);
+
+  if (error) {
+    console.error('읽은 사람 목록 불러오기 실패:', error);
+    return [];
+  }
+
+  // 중복 제거하고 이름만 반환
+  const uniqueReaders = [...new Set(data?.map((read) => read.reader_name) || [])];
+  return uniqueReaders;
+}
+
+/**
  * 모든 읽기 기록 가져오기
  */
 export async function getAllDiaryReads(): Promise<DiaryRead[]> {

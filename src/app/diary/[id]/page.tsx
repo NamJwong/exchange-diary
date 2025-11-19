@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getUserName } from '@/lib/storage';
-import { getDiary, recordDiaryRead } from '@/lib/api';
+import { getDiary, recordDiaryRead, getDiaryReaders } from '@/lib/api';
 import type { Diary } from '@/types/database';
 
 /**
@@ -17,7 +17,7 @@ export default function DiaryDetailPage() {
 
   const [diary, setDiary] = useState<Diary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState<string>('');
+  const [readers, setReaders] = useState<string[]>([]);
 
   const loadDiary = useCallback(
     async (readerName: string) => {
@@ -42,6 +42,10 @@ export default function DiaryDetailPage() {
             reader_name: readerName,
           });
         }
+
+        // 읽은 사람 목록 불러오기
+        const readersList = await getDiaryReaders(diaryId);
+        setReaders(readersList);
       } catch (error) {
         console.error('일기 불러오기 실패:', error);
         alert('일기를 불러오는데 실패했습니다.');
@@ -60,7 +64,6 @@ export default function DiaryDetailPage() {
       router.push('/');
       return;
     }
-    setUserName(name);
 
     // 일기 불러오기 및 열람 기록
     loadDiary(name);
@@ -117,9 +120,11 @@ export default function DiaryDetailPage() {
           </div>
 
           {/* 열람 정보 */}
-          {diary.author_name !== userName && (
+          {readers.length > 0 && (
             <div className="mt-8 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-500">{userName}님이 이 일기를 읽었습니다 📖</p>
+              <p className="text-sm text-gray-500">
+                {readers.join(', ')}님이 이 일기를 읽었습니다 📖
+              </p>
             </div>
           )}
         </div>
